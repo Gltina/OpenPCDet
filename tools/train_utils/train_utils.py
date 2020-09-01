@@ -104,10 +104,12 @@ def train_model(model, optimizer, train_loader, model_func, lr_scheduler, optim_
                     for cur_file_idx in range(0, len(ckpt_list) - max_ckpt_save_num + 1):
                         os.remove(ckpt_list[cur_file_idx])
 
-                ckpt_name = ckpt_save_dir / ('checkpoint_epoch_%d' % trained_epoch)
-                save_checkpoint(
-                    checkpoint_state(model, optimizer, trained_epoch, accumulated_iter), filename=ckpt_name,
-                )
+                if trained_epoch in [50, 100, 150, 200, 250]:
+                    ckpt_name = ckpt_save_dir / ('checkpoint_epoch_%d' % trained_epoch)
+                    print('saved ', ckpt_name)
+                    save_checkpoint(
+                        checkpoint_state(model, optimizer, trained_epoch, accumulated_iter), filename=ckpt_name,
+                    )
 
 
 def model_state_to_cpu(model_state):
