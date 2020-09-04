@@ -1,3 +1,5 @@
+import os
+
 import argparse
 import glob
 from pathlib import Path
@@ -58,7 +60,7 @@ def parse_config():
     parser.add_argument('--cfg_file', type=str, default='cfgs/kitti_models/second.yaml',
                         help='specify the config for demo')
     parser.add_argument('--data_path', type=str, default='demo_data',
-                        help='specify the point cloud data file or directory')
+                        help='specify the point cloud directory')
     parser.add_argument('--ckpt', type=str, default=None, help='specify the pretrained model')
     parser.add_argument('--ext', type=str, default='.bin', help='specify the extension of your point cloud data file')
 
@@ -67,6 +69,10 @@ def parse_config():
     cfg_from_yaml_file(args.cfg_file, cfg)
 
     return args, cfg
+
+
+def get_all_data(folder_name):
+    return os.listdir(folder_name)
 
 
 def main():
@@ -78,17 +84,31 @@ def main():
         root_path=Path(args.data_path), ext=args.ext, logger=logger
     )
     logger.info(f'Total number of samples: \t{len(demo_dataset)}')
+    data_name_list = demo_dataset.sample_file_list
+    # print(data_name_list)
+    print('evaluation data size=', len(data_name_list))
 
     model = build_network(model_cfg=cfg.MODEL, num_class=len(cfg.CLASS_NAMES), dataset=demo_dataset)
     model.load_params_from_file(filename=args.ckpt, logger=logger, to_cpu=True)
     model.cuda()
     model.eval()
+
     with torch.no_grad():
         for idx, data_dict in enumerate(demo_dataset):
-            logger.info(f'Visualized sample index: \t{idx + 1}')
+            # logger.info(f'Visualized sample index: \t{idx + 1}')
+            logger.info(f'Detecte sample: \t{data_name_list[idx]}')
             data_dict = demo_dataset.collate_batch([data_dict])
             load_data_to_gpu(data_dict)
             pred_dicts, _ = model.forward(data_dict)
+
+            print(pred_dicts)
+            # print(data_dict)
+            # print(type(pred_dicts[0]['pred_boxes']))
+            # print(pred_dicts[0]['pred_boxes'])
+            res = pred_dicts[0]['pred_boxes'].cpu().numpy().round(8)
+            save_filename = str(data_name_list[idx])
+            np.savetxt('evaluation/'+save_filename[save_filename.rfind('/')+1:].replace('.bin','.txt'), res, fmt='%.08f')
+            # test_f.writelines(pred_dicts[0]['pred_boxes'])
 
             V.draw_scenes(
                 points=data_dict['points'][:, 1:], ref_boxes=pred_dicts[0]['pred_boxes'],

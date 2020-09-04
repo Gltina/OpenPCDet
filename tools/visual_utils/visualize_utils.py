@@ -157,15 +157,22 @@ def draw_scenes(points, gt_boxes=None, ref_boxes=None, ref_scores=None, ref_labe
         corners3d = boxes_to_corners_3d(gt_boxes)
         fig = draw_corners3d(corners3d, fig=fig, color=(0, 0, 1), max_num=100)
 
-    if ref_boxes is not None and len(ref_boxes) > 0:
+    if ref_boxes is not None:
         ref_corners3d = boxes_to_corners_3d(ref_boxes)
-        if ref_labels is None:
-            fig = draw_corners3d(ref_corners3d, fig=fig, color=(0, 1, 0), cls=ref_scores, max_num=100)
-        else:
+
+        # print(ref_labels)
+        # print(type(ref_labels))
+        if len(ref_labels) > 0:
+            # print("ref_labels is not None")
+            # print(ref_labels.min(), ref_labels.max() + 1)
             for k in range(ref_labels.min(), ref_labels.max() + 1):
                 cur_color = tuple(box_colormap[k % len(box_colormap)])
                 mask = (ref_labels == k)
                 fig = draw_corners3d(ref_corners3d[mask], fig=fig, color=cur_color, cls=ref_scores[mask], max_num=100)
+        else:
+            # print("ref_labels is None")
+            fig = draw_corners3d(ref_corners3d, fig=fig, color=(0, 1, 0), cls=ref_scores, max_num=100)
+
     mlab.view(azimuth=-179, elevation=54.0, distance=104.0, roll=90.0)
     return fig
 

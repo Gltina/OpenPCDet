@@ -93,6 +93,14 @@ def main():
     model.cuda()
     model.eval()
 
+    ckpt_filename=args.ckpt
+    check_point_number = ckpt_filename[ckpt_filename.find('epoch_')+6:ckpt_filename.find('.pth')]
+    save_dir = 'evaluation_{}'.format(check_point_number)
+    
+    if not os.path.exists(save_dir):
+        print('no evaluation directory, created {}'.format(save_dir))
+        os.mkdir(save_dir)
+
     with torch.no_grad():
         for idx, data_dict in enumerate(demo_dataset):
             # logger.info(f'Visualized sample index: \t{idx + 1}')
@@ -107,7 +115,8 @@ def main():
             # print(pred_dicts[0]['pred_boxes'])
             res = pred_dicts[0]['pred_boxes'].cpu().numpy().round(8)
             save_filename = data_name_list[idx]
-            np.savetxt('evaluation/'+save_filename[save_filename.rfind('/')+1:].replace('.bin','.txt'), res, fmt='%.08f')
+
+            np.savetxt(save_dir + '/' + save_filename[save_filename.rfind('/')+1:].replace('.bin','.txt'), res, fmt='%.08f')
             # test_f.writelines(pred_dicts[0]['pred_boxes'])
 
             # V.draw_scenes(
