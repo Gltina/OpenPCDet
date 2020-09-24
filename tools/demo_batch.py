@@ -113,10 +113,31 @@ def main():
             # print(data_dict)
             # print(type(pred_dicts[0]['pred_boxes']))
             # print(pred_dicts[0]['pred_boxes'])
+        
+            # get predicted box
             res = pred_dicts[0]['pred_boxes'].cpu().numpy().round(8)
-            save_filename = data_name_list[idx]
+            print (type(res))
 
-            np.savetxt(save_dir + '/' + save_filename[save_filename.rfind('/')+1:].replace('.bin','.txt'), res, fmt='%.08f')
+            # get labels's name
+            ref_labels=pred_dicts[0]['pred_labels']
+            ref_labels = ref_labels.cpu().numpy()
+            ref_labels_text = ['Socket', 'Plug']
+            new_ref_labels = []
+            for r_f in ref_labels:
+                new_ref_labels.append(ref_labels_text[r_f-1])
+            print (new_ref_labels)
+
+            save_filename = data_name_list[idx]
+            save_path = save_dir + '/' + save_filename[save_filename.rfind('/')+1:].replace('.bin','.txt')
+
+            with open(save_path, 'w') as res_f:
+                for r_f_i, r_f in enumerate(new_ref_labels):
+                    res_f.write(r_f + ' ')
+                    for item in res[r_f_i]:
+                        res_f.write(str(item) + ' ')
+                    res_f.write('\n')
+            # exit(1)
+            # np.savetxt(save_path, res, fmt='%.08f')
             # test_f.writelines(pred_dicts[0]['pred_boxes'])
 
             # V.draw_scenes(
